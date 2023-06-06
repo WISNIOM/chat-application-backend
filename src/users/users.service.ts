@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { IUserService } from './users';
-import { CreateUserDetails } from 'src/utils/types';
+import { CreateUserDetails, FindUserParams } from 'src/utils/types';
 import { User } from 'src/utils/typeorm';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { hashPassword } from 'src/utils/helpres';
+import { hashPassword } from 'src/utils/helpers';
 
 @Injectable()
 export class UsersService implements IUserService {
@@ -23,6 +23,10 @@ export class UsersService implements IUserService {
         const hashedPassword = await hashPassword(password);
         const newUser = this.userRepository.create({ ...userDetails, password: hashedPassword });
         return this.userRepository.save(newUser);
+    }
+
+    async findUser(findUserParams: FindUserParams): Promise<User> {
+        return this.userRepository.findOneBy(findUserParams);
     }
 
 }
