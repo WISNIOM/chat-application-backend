@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { IUserService } from './users';
-import { CreateUserDetails, FindUserParams } from 'src/utils/types';
+import { CreateUserDetails, FindUserOptions, FindUserParams } from 'src/utils/types';
 import { User } from 'src/utils/typeorm';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -25,8 +25,19 @@ export class UsersService implements IUserService {
         return this.userRepository.save(newUser);
     }
 
-    async findUser(findUserParams: FindUserParams): Promise<User> {
-        return this.userRepository.findOneBy(findUserParams);
+    async findUser(params: FindUserParams, options?: FindUserOptions): Promise<User> {
+        const { id, email } = params;
+        const selections: (keyof User)[] = [
+            'email',
+            'firstName',
+            'lastName',
+            'id',
+        ];
+        const selectionsWithPassword: (keyof User)[] = [...selections, 'password'];
+        return this.userRepository.findOne({
+            where: [{ id }, { email }],
+            select: options?.selectAll ? selectionsWithPassword : selections,
+        });
     }
 
 }
