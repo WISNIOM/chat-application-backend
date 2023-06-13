@@ -12,9 +12,12 @@ import { ConversationExistsException } from './exceptions/conversation-exists';
 export class ConversationsService implements IConversationsService {
 
     constructor(
-        @InjectRepository(Conversation) private readonly conversationRepository: Repository<Conversation>,
-        @InjectRepository(Message) private readonly messageRepository: Repository<Message>,
-        @Inject(Services.Users) private readonly userService: IUserService,
+        @InjectRepository(Conversation)
+        private readonly conversationRepository: Repository<Conversation>,
+        @InjectRepository(Message)
+        private readonly messageRepository: Repository<Message>,
+        @Inject(Services.Users)
+        private readonly userService: IUserService,
     ) { }
 
     async createConversation(user: User, params: CreateConversationParams) {
@@ -22,30 +25,37 @@ export class ConversationsService implements IConversationsService {
         const { recipientId, message } = params;
         const conversationExists = await this.isCreated(authorId, recipientId);
         if (conversationExists) {
-            console.log(conversationExists);
             throw new ConversationExistsException();
         }
+
         if (authorId === recipientId) {
-            throw new BadRequestException('You can\'t create conversation with your own!');
+            throw new BadRequestException("You can't create a conversation with yourself!");
         }
+
         const [author, recipient] = await Promise.all([
             this.userService.findUser({ id: authorId }),
             this.userService.findUser({ id: recipientId })
         ]);
+
         const newConversation = this.conversationRepository.create({
             creator: author,
             recipient,
         });
-        const conversation = await this.conversationRepository.save(
+
+        const conversation = await this.save(
             newConversation,
         );
+
         const newMessage = this.messageRepository.create({
             content: message,
             conversation,
             author,
         });
-        await this.messageRepository.save(newMessage);
-        return conversation;
+
+        const savedMessage = await this.messageRepository.save(newMessage);
+        conversation.lastMessageSent = savedMessage;
+        const updatedConversation = await this.save(conversation);
+        return updatedConversation;
     }
 
     async isCreated(authorId: number, recipientId: number) {
@@ -84,5 +94,9 @@ export class ConversationsService implements IConversationsService {
                 'lastMessageSent',
             ],
         });
+    }
+
+    async save(conversation: Conversation): Promise<Conversation> {
+        return this.conversationRepository.save(conversation);
     }
 }

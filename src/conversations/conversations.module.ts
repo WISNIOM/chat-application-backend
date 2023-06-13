@@ -15,6 +15,12 @@ import { UsersModule } from 'src/users/users.module';
     providers: [{
         provide: Services.Conversations,
         useClass: ConversationsService,
-    }]
+    }],
+    exports: [
+        {
+            provide: Services.Conversations,
+            useClass: ConversationsService,
+        },
+    ],
 })
 export class ConversationsModule { }

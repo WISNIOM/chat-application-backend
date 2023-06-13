@@ -1,4 +1,4 @@
-import { User } from './typeorm';
+import { Conversation, Message, User } from './typeorm';
 import { Request } from 'express';
 
 export type CreateUserDetails = {
@@ -33,3 +33,27 @@ export interface AuthenticatedRequest extends Request {
 export type FindUserOptions = Partial<{
     selectAll: boolean;
 }>;
+
+export type CreateMessageParams = {
+    content: string;
+    conversationId: number;
+    user: User;
+};
+
+export type CreateMessageResponse = {
+    message: Message;
+    conversation: Conversation;
+};
+
+export type EditMessageParams = {
+    conversationId: number;
+    messageId: number;
+    userId: number;
+    content: string;
+};
+
+export type DeleteMessageParams = {
+    conversationId: number;
+    messageId: number;
+    userId: number;
+};
